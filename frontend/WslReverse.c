@@ -215,40 +215,43 @@ int WINAPI main(void)
         case 'l':
         {
             ULONG DistroCount;
-            PLXSS_ENUMERATE_INFO DistroInfo = NULL, tDistroInfo = NULL;
-            hRes = wslSession->lpVtbl->EnumerateDistributions(wslSession, &DistroCount, &DistroInfo);
+            GUID* DistroIDs = NULL, *tDistroIDs = NULL;
+            hRes = wslSession->lpVtbl->EnumerateDistributions(wslSession, 0, &DistroCount, &DistroIDs);
 
             if (DistroCount)
             {
-                tDistroInfo = DistroInfo;
+                tDistroIDs = DistroIDs;
                 wprintf(L"\nWSL Distributions:\n");
                 for (ULONG i = 0; i < DistroCount; i++)
                 {
                     hRes = wslSession->lpVtbl->GetDistributionConfiguration(
-                           wslSession, &DistroInfo->DistributionID, &DistributionName, &Version, &BasePath,
+                           wslSession, DistroIDs, &DistributionName, &Version, &BasePath,
                            &KernelCommandLine, &DefaultUid, &EnvironmentCount, &DefaultEnvironment, &Flags);
 
-                    RtlStringFromGUID(&DistroInfo->DistributionID, &GuidString);
+                    RtlStringFromGUID(DistroIDs, &GuidString);
 
-                    if (DistroInfo->Default)
+                    hRes = wslSession->lpVtbl->GetDefaultDistribution(wslSession, &DistroId);
+                    LogResult(hRes, L"GetDefaultDistribution");
+                    
+                    if (IsEqualGUID(DistroIDs, &DistroId))
                     {
                         wprintf(L"%ls : %ls (Default) (%ld)\n",
-                                GuidString.Buffer, DistributionName, DistroInfo->Version);
+                                GuidString.Buffer, DistributionName, Version);
                     }
                     else
                     {
                         wprintf(L"%ls : %ls (%ld)\n",
-                                GuidString.Buffer, DistributionName, DistroInfo->Version);
+                                GuidString.Buffer, DistributionName, Version);
                     }
 
                     RtlFreeUnicodeString(&GuidString);
-                    DistroInfo = (PLXSS_ENUMERATE_INFO)((PBYTE)DistroInfo + sizeof (*DistroInfo));
+                    DistroIDs = ((PBYTE)DistroIDs + sizeof (GUID));
                 }
             }
             else
                 wprintf(L"No Distribution Installed.\n");
-            if (tDistroInfo)
-                CoTaskMemFree(tDistroInfo);
+            if (tDistroIDs)
+                CoTaskMemFree(tDistroIDs);
             break;
         }
         case 'r':

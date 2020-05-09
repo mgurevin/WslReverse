@@ -172,10 +172,11 @@ struct _ILxssUserSessionVtbl
     * PVOID ObjectStublessClient13;
     * Free allocated memory with CoTaskMemFree
     **/
-    HRESULT(STDMETHODCALLTYPE *EnumerateDistributions)(
+    HRESULT(STDMETHODCALLTYPE* EnumerateDistributions)(
         _In_ ILxssUserSession* wslSession,
+        _Out_ ULONG unknownParameter,
         _Out_ PULONG DistroCount,
-        _Out_ PLXSS_ENUMERATE_INFO* DistroInfo);
+        _Out_ GUID* DistroIDs);
 
     /**
     * PVOID ObjectStublessClient14;
